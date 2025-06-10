@@ -9,8 +9,6 @@ import ProveedorInfo from "@/admin/ProveedorInfo.vue";
 import MetodoPago from "@/cart/RelizarPagos.vue";
 import PerfilUsuario from "@/user/PerfilUsuario.vue";
 import RealizarPagos from "@/cart/RelizarPagos.vue";
-import Pedidos from "@/user/Pedidos.vue";
-import Autenticacion from "@/auth/Autenticacion.vue";
 import PerfilAdmin from "@/admin/PerfilAdmin.vue";
 
 const router = createRouter({
@@ -69,16 +67,6 @@ const router = createRouter({
       path: "/realizar-pago",
       name: "RealizarPago",
       component: RealizarPagos, 
-    },
-    {
-      path: "/ver-pedidos",
-      name: "VerPedidos",
-      component: Pedidos, 
-    } ,
-    {
-      path: "/autenticacion",
-      name: "Autenticacion",
-      component: Autenticacion, 
     },
     {
       path: "/perfil-admin",

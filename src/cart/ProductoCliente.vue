@@ -6,32 +6,27 @@
         <!-- Columna de la imagen -->
         <div class="col-md-6 mb-4 h-100">
           <img
-            :src="product.imagenUrl || defaultImage"
-            :alt="product.nombreProducto"
+            :src="mainImage || defaultImage"
+            :alt="product.nombre"
             class="img-fluid rounded"
           />
 
-          <!-- Miniaturas adicionales solo si hay más de una imagen -->
+          <!-- Miniaturas adicionales -->
           <div
-            v-if="product.additionalImages && product.additionalImages.length > 0"
+            v-if="(product.imagenes && product.imagenes.length > 1)"
             class="d-flex mt-3 gap-2"
           >
             <div
-              v-for="(image, index) in product.additionalImages"
+              v-for="(image, index) in product.imagenes"
               :key="index"
               class="thumbnail-container"
               style="width: 80px; height: 80px"
             >
               <img
-                :src="image"
-                :alt="product.name"
+                :src="image || defaultImage"
+                :alt="product.nombre"
                 class="img-thumbnail"
-                style="
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                  cursor: pointer;
-                "
+                style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
                 @click="setMainImage(image)"
               />
             </div>
@@ -40,16 +35,15 @@
 
         <!-- Columna de detalles -->
         <div class="col-md-6">
-          <h2 class="mb-2">{{ product.nombreProducto }}</h2>
-          <p class="text-muted mb-3">de {{ product.proveedor.nombreProveedor }}</p>
+          <h2 class="mb-2">{{ product.nombre }}</h2>
 
           <div class="fs-3 fw-bold text-primary mb-4">
-            {{ formatPrice(product.precioUnitario) }}
+            {{ formatPrice(product.precio) }}
           </div>
 
           <!-- Stock status -->
           <div class="mb-4">
-            <span v-if="product.stock > 0" class="badge bg-success">En stock</span>
+            <span v-if="product.cantidad > 0" class="badge bg-success">En stock</span>
             <span v-else class="badge bg-danger">Agotado</span>
           </div>
 
@@ -73,13 +67,13 @@
                   v-model.number="quantity"
                   min="1"
                   readonly
-                  :max="product.stock"
+                  :max="product.cantidad"
                 />
                 <button
                   class="btn btn-outline-secondary"
                   type="button"
                   @click="increaseQuantity"
-                  :disabled="quantity >= product.stock"
+                  :disabled="quantity >= product.cantidad"
                 >
                   <i class="bi bi-plus"></i>
                 </button>
@@ -88,7 +82,7 @@
               <button
                 class="btn btn-primary"
                 @click="addToCart"
-                :disabled="product.stock <= 0"
+                :disabled="product.cantidad <= 0"
               >
                 Agregar al carrito
               </button>
@@ -98,151 +92,107 @@
           <!-- Descripción -->
           <div class="mt-4">
             <h5>Descripción</h5>
-            <p>{{ product.descripcionProducto }}</p>
+            <p>{{ product.descripcion }}</p>
           </div>
         </div>
       </div>
-      <!-- Componente de reseñas -->
-      <ResenasProducto :productId="product.idProducto" />
+      <!-- Componente de reseñas (ajusta el prop según tu store) -->
+      <ResenasProducto :idProducto="product.id_articulo" />
     </div>
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, onMounted } from "vue";
+<script setup>
+import { ref, computed, watch } from "vue";
 import ResenasProducto from "@/cart/ResenasProducto.vue";
 import axios from "axios";
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 import MainHeader from "@/components/MainHeader.vue";
+import { useStore } from 'vuex';
 
-export default defineComponent({
-  name: "ProductDetail",
-  components: {
-    ResenasProducto,
-    MainHeader
+const store = useStore();
+const router = useRouter();
+const quantity = ref(1);
+const defaultImage = new URL('@/assets/producto_sinfoto.png', import.meta.url).href;
+
+const product = computed(() => store.state.articulos.selectedArticle);
+const user = computed(() => store.state.users.user);
+const tokenAccess = computed(() => store.state.users.tokenAccess);
+// Imagen principal (local)
+const mainImage = ref(`data:image/jpeg;base64,${product.fotografia}`|| defaultImage);
+
+watch(
+  () => product.value,
+  (newProduct) => {
+    mainImage.value = newProduct?.imagen || defaultImage;
+    quantity.value = 1;
   },
+  { immediate: true }
+);
 
-  setup() {
-    const route = useRoute();
-    const router = useRouter()
-    const product = ref(null);
-    const quantity = ref(1);
-    const defaultImage = "https://via.placeholder.com/500"; // Imagen genérica por defecto
-    const user = JSON.parse(localStorage.getItem("userInfo"));
-    console.log(user)
+const setMainImage = (image) => {
+  mainImage.value = image || defaultImage;
+};
 
-    const loadProduct = async () => {
-      const idProduct = route.query.id
-      console.log(idProduct)
-      try {
-        const response = await axios.get(
-          `/api/v1/productos/${idProduct}`
-        )
-        product.value = response.data;
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          })
-        }
-      }
+// Formatear precio
+const formatPrice = (price) => {
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+  }).format(price);
+};
+
+// Manejar cantidad
+const increaseQuantity = () => {
+  if (quantity.value < product.value.cantidad) quantity.value++;
+};
+const decreaseQuantity = () => {
+  if (quantity.value > 1) quantity.value--;
+};
+
+// Agregar al carrito
+const addToCart = async () => {
+  try {
+    const response = await axios.post('/compra_articulo', {
+      cantidad: quantity.value,
+      id_articulo: product.value.id_articulo,
+      id_usuario: user.value.id_usuario,
+      token: tokenAccess.value,
+    });
+    if (response) {
+      toast("Producto añadido al carrito", {
+        hideProgressBar: true,
+        autoClose: 600,
+        type: "success",
+        theme: "colored",
+        onClose: () => {
+          router.push({name: 'CarritoDeCompras'})
+        },
+      })
     }
-
-    // Agregar al carrito
-    const addToCart = async () => {
-      const data = {
-        cantidad: quantity.value,
-        producto: product.value,
-        carrito: user.carrito,
-      }
-      try {
-        const response = await axios.post('/api/v1/cart/add', data);
-        if (response) {
-          toast("Producto añadido al carrito", {
-            hideProgressBar: true,
-            autoClose: 600,
-            type: "success",
-            theme: "colored",
-            onClose: () => {
-              router.push({name: 'CarritoDeCompras'})
-            },
-          })
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = 'Este producto ya está en el carrito'
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          })
-        }
-      }
-    };
-
-    // Formatear precio
-    const formatPrice = (price) => {
-      return new Intl.NumberFormat("es-MX", {
-        style: "currency",
-        currency: "MXN",
-      }).format(price);
-    };
-
-    // Manejar cantidad
-    const increaseQuantity = () => {
-      quantity.value++;
-    };
-
-    const decreaseQuantity = () => {
-      if (quantity.value > 1) {
-        quantity.value--;
-      }
-    };
-
-    // Cambiar imagen principal
-    const setMainImage = (image) => {
-      const currentMain = product.value.mainImage;
-      product.value = {
-        ...product.value,
-        mainImage: image,
-        additionalImages: product.value.additionalImages.map((img) =>
-          img === image ? currentMain : img
-        ),
-      };
-    };
-
-    onMounted(loadProduct);
-
-    return {
-      product,
-      quantity,
-      defaultImage,
-      formatPrice,
-      increaseQuantity,
-      decreaseQuantity,
-      setMainImage,
-      addToCart,
-    };
-  },
-});
+  } catch (error) {
+    if (error.response) {
+      let messageError = error.response.data.detailMessage
+      toast(messageError, {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      })
+    }
+  }
+};
 </script>
 
 <style scoped>
 .thumbnail-container {
   transition: all 0.2s ease-in-out;
 }
-
 .thumbnail-container:hover {
   transform: scale(1.05);
 }
-
-/* Asegurar que las imágenes mantengan su aspecto */
 .img-fluid {
   max-height: 500px;
   object-fit: contain;

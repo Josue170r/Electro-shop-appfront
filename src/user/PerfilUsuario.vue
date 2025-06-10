@@ -7,7 +7,7 @@
         style="height: 120px"
       >
         <img
-          src="../assets/logoElectroShop.png"
+          src="../assets/logo.jpg"
           alt="Logo"
           class="img-fluid"
           style="max-height: 150px"
@@ -37,54 +37,32 @@
 
     <!-- Main Content -->
     <div class="p-4 flex-grow-1">
-      <SecundaryHeader />
+      <MainHeader />
       <component :is="currentComponent" />
     </div>
   </div>
 </template>
 
 <script>
-import SecundaryHeader from "@/components/SecundaryHeader.vue";
-import DireccionesEnvio from "@/user/DireccionesEnvio.vue";
-import Pedidos from "@/user/Pedidos.vue";
+import { mapState } from 'vuex'
+import MainHeader from '@/components/MainHeader.vue';
 import DatosUsuario from "@/user/DatosUsuario.vue";
-import CambiarContraseña from "@/auth/CambiarContraseña.vue";
 import {
-  LockKeyholeIcon,
-  HomeIcon,
-  BaggageClaimIcon,
   UserCircle2,
 } from "lucide-vue-next";
 
 export default {
   name: "SidebarLayout",
   components: {
-    DireccionesEnvio,
-    Pedidos,
-    BaggageClaimIcon,
     DatosUsuario,
-    CambiarContraseña,
-    LockKeyholeIcon,
-    HomeIcon,
     UserCircle2,
-    SecundaryHeader,
+    MainHeader,
   },
   data() {
     return {
       activeView: "DatosUsuario",
       options: [
-        {
-          label: "Direcciones de envío",
-          view: "DireccionesEnvio",
-          icon: HomeIcon,
-        },
-        { label: "Mis pedidos", view: "Pedidos", icon: BaggageClaimIcon },
         { label: "General", view: "DatosUsuario", icon: UserCircle2 },
-        {
-          label: "Cambiar contraseña",
-          view: "CambiarContraseña",
-          icon: LockKeyholeIcon,
-        },
       ],
     };
   },
@@ -92,6 +70,9 @@ export default {
     currentComponent() {
       return this.activeView;
     },
+    ...mapState('users', {
+      user: 'user'
+    }),
   },
   methods: {
     setView(view) {

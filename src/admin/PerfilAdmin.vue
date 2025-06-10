@@ -48,7 +48,7 @@
         style="height: 120px"
       >
         <img
-          src="../assets/logoElectroShop.png"
+          src="../assets/logo.jpg"
           alt="Logo"
           class="img-fluid"
           style="max-height: 150px"

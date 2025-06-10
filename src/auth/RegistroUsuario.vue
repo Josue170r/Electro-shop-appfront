@@ -1,390 +1,448 @@
 <template>
   <div class="register-container">
-    <!-- Imagen a la izquierda -->
-    <div class="register-image">
-      <img
-        src="@/assets/logoElectroShop.png"
-        alt="Imagen de registro"
-        class="img-fluid"
-      />
-    </div>
-
-    <!-- Formulario de registro -->
-    <div class="register-form">
-      <h2 class="form-title">Regístrate</h2>
-      <form @submit.prevent="handleRegister">
-        <!-- Campo de correo y nombre de usuario en la misma fila -->
-        <div class="row mb-3">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="email">Correo Electrónico</label>
-              <input
-                type="email"
-                id="email"
-                v-model="email"
-                class="form-control"
-                :class="{ 'is-invalid': emailError }"
-                placeholder="Ingresa tu correo"
-                required
-              />
-              <div v-if="emailError" class="invalid-feedback">{{ emailError }}</div>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-12">
+          <div class="card register-card">
+            <div class="card-header text-center">
+              <h2 class="mb-3">Crear Nueva Cuenta</h2>
+              <p class="text-muted">Completa tu información para registrarte</p>
             </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="userName">Nombre de Usuario</label>
-              <input
-                type="text"
-                id="userName"
-                v-model="userName"
-                class="form-control"
-                placeholder="Ingresa tu nombre de usuario"
-                required
-              />
+
+            <div class="card-body">
+              <!-- Foto de Perfil -->
+              <div class="photo-section text-center mb-4">
+                <h5 class="mb-3">Foto de Perfil</h5>
+                <div class="photo-container d-flex flex-column align-items-center">
+                  <div 
+                    class="profile-avatar mb-3"
+                    @click="triggerFileInput"
+                  >
+                    <img 
+                      v-if="profileImagePreview" 
+                      :src="profileImagePreview" 
+                      alt="Foto de perfil" 
+                      class="avatar-img"
+                    />
+                    <div v-else class="avatar-placeholder">
+                      <i class="bi bi-person-circle"></i>
+                    </div>
+                  </div>
+                  <div class="photo-actions">
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-sm me-2"
+                      @click="triggerFileInput"
+                    >
+                      <i class="bi bi-camera"></i>
+                      {{ profileImagePreview ? 'Cambiar Foto' : 'Subir Foto' }}
+                    </button>
+                    <button
+                      v-if="profileImagePreview"
+                      type="button"
+                      class="btn btn-danger btn-sm"
+                      @click="removeImage"
+                    >
+                      <i class="bi bi-trash"></i>
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  style="display: none"
+                  @change="onImageChange"
+                />
+              </div>
+
+              <div class="row">
+                <!-- Email -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-envelope me-2"></i>Correo Electrónico *
+                  </label>
+                  <input
+                    v-model="formData.email"
+                    type="email"
+                    class="form-control"
+                    placeholder="ejemplo@correo.com"
+                    required
+                  />
+                </div>
+
+                <!-- Password -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-lock me-2"></i>Contraseña *
+                  </label>
+                  <input
+                    v-model="formData.password"
+                    type="password"
+                    class="form-control"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                  />
+                </div>
+
+                <!-- Nombre -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-person me-2"></i>Nombre(s) *
+                  </label>
+                  <input
+                    v-model="formData.nombre"
+                    type="text"
+                    class="form-control"
+                    placeholder="Tu nombre"
+                    required
+                  />
+                </div>
+
+                <!-- Apellido Paterno -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">Apellido Paterno *</label>
+                  <input
+                    v-model="formData.apellido_paterno"
+                    type="text"
+                    class="form-control"
+                    placeholder="Apellido paterno"
+                    required
+                  />
+                </div>
+
+                <!-- Apellido Materno -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">Apellido Materno</label>
+                  <input
+                    v-model="formData.apellido_materno"
+                    type="text"
+                    class="form-control"
+                    placeholder="Apellido materno"
+                  />
+                </div>
+
+                <!-- Fecha de Nacimiento -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-calendar me-2"></i>Fecha de Nacimiento *
+                  </label>
+                  <input
+                    v-model="formData.fecha_nacimiento"
+                    type="date"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <!-- Teléfono -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">
+                    <i class="bi bi-phone me-2"></i>Teléfono
+                  </label>
+                  <input
+                    v-model="formData.telefono"
+                    type="tel"
+                    class="form-control"
+                    placeholder="1234567890"
+                  />
+                </div>
+
+                <!-- Género -->
+                <div class="col-lg-6 col-12 mb-3">
+                  <label class="form-label">Género</label>
+                  <select v-model="formData.genero" class="form-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                    <option value="O">Otro</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="row">
+                <div class="col-lg-6 col-12 mb-2">
+                  <router-link to="/inicio-sesion" class="text-decoration-none">
+                    <button type="button" class="btn btn-outline-secondary w-100">
+                      ¿Ya tienes cuenta? Inicia sesión
+                    </button>
+                  </router-link>
+                </div>
+                <div class="col-lg-6 col-12">
+                  <button
+                    type="button"
+                    class="btn btn-primary w-100"
+                    :disabled="!isFormValid"
+                    @click="handleRegister"
+                  >
+                    Crear Cuenta
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        <!-- Campo de contraseña y confirmar contraseña en la misma fila -->
-        <div class="row mb-3">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="password">Contraseña</label>
-              <input
-                type="password"
-                id="password"
-                v-model="password"
-                class="form-control"
-                :class="{ 'is-invalid': passwordError }"
-                placeholder="Ingresa tu contraseña"
-                required
-              />
-              <div v-if="passwordError" class="invalid-feedback">{{ passwordError }}</div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="confirmPassword">Confirmar Contraseña</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                v-model="confirmPassword"
-                class="form-control"
-                :class="{ 'is-invalid': confirmPasswordError }"
-                placeholder="Confirma tu contraseña"
-                required
-              />
-              <div v-if="confirmPasswordError" class="invalid-feedback">{{ confirmPasswordError }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Campo de nombre y apellidos en la misma fila -->
-        <div class="row mb-3">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="nombre">Nombre</label>
-              <input
-                type="text"
-                id="nombre"
-                v-model="nombre"
-                class="form-control"
-                :class="{ 'is-invalid': nombreError }"
-                placeholder="Ingresa tu nombre"
-                required
-              />
-              <div v-if="nombreError" class="invalid-feedback">{{ nombreError }}</div>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="apellidos">Apellidos</label>
-              <input
-                type="text"
-                id="apellidos"
-                v-model="apellidos"
-                class="form-control"
-                placeholder="Ingresa tus apellidos"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Campo de teléfono y fecha de nacimiento en la misma fila -->
-        <div class="row mb-3">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="telefono">Teléfono</label>
-              <input
-                type="tel"
-                id="telefono"
-                v-model="telefono"
-                class="form-control"
-                placeholder="Ingresa tu teléfono"
-                required
-              />
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="fechaNacimiento">Fecha de Nacimiento</label>
-              <input
-                type="date"
-                id="fechaNacimiento"
-                v-model="fechaNacimiento"
-                class="form-control"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Campo de calle y colonia en la misma fila -->
-        <div class="row mb-3">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="calle">Calle</label>
-              <input
-                type="text"
-                id="calle"
-                v-model="calle"
-                class="form-control"
-                placeholder="Ingresa tu calle"
-                required
-              />
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="colonia">Colonia</label>
-              <input
-                type="text"
-                id="colonia"
-                v-model="colonia"
-                class="form-control"
-                placeholder="Ingresa tu colonia"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Campo de número y código postal en la misma fila -->
-        <div class="row mb-3">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="numero">Número Interior</label>
-              <input
-                type="text"
-                id="numero"
-                v-model="numero"
-                class="form-control"
-                placeholder="Número interior"
-                required
-              />
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label for="codigoPostal">Código Postal</label>
-              <input
-                type="text"
-                id="codigoPostal"
-                v-model="codigoPostal"
-                class="form-control"
-                placeholder="Ingresa tu código postal"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón de registro -->
-        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-      </form>
-
-      <!-- Botones para regresar y para iniciar sesión -->
-      <div class="navigation-buttons mt-3">
-        <router-link
-          to="/home-screen"
-          class="btn btn-outline-secondary w-100 mb-2"
-        >
-          Regresar a Inicio
-        </router-link>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
-import { useRouter } from 'vue-router';
-import axios from "axios";
+<script>
+import { mapActions } from 'vuex'
 import { toast } from 'vue3-toastify'
-// Campos del formulario
-const email = ref("");
-const password = ref("");
-const confirmPassword = ref("");
-const nombre = ref("");
-const apellidos = ref("");
-const telefono = ref("");
-const fechaNacimiento = ref("");
-const calle = ref("");
-const colonia = ref("");
-const numero = ref("");
-const codigoPostal = ref("");
-const userName = ref("");
 
-// Errores de validación
-const emailError = ref("");
-const passwordError = ref("");
-const confirmPasswordError = ref("");
-const nombreError = ref("");
-
-const router = useRouter()
-
-// Función para manejar el registro
-const handleRegister = async () => {
-  // Validaciones básicas
-  emailError.value = email.value.includes("@") ? "" : "Correo no válido.";
-  passwordError.value =
-    password.value.length >= 6
-      ? ""
-      : "La contraseña debe tener al menos 6 caracteres.";
-  confirmPasswordError.value =
-    password.value === confirmPassword.value
-      ? ""
-      : "Las contraseñas no coinciden.";
-  nombreError.value = nombre.value.trim() ? "" : "El nombre es obligatorio.";
-
-  // Si no hay errores, procesar el registro
-  if (
-    !emailError.value &&
-    !passwordError.value &&
-    !confirmPasswordError.value &&
-    !nombreError.value
-  ) {
-    try {
-      const response = await axios.post('/api/v1/signup', {
-        email: email.value,
-        password: password.value,
-        userName: userName.value,
-        nombre: nombre.value,
-        apellidos: apellidos.value,
-        calle: calle.value,
-        colonia: colonia.value,
-        numero: numero.value,
-        codigoPostal: codigoPostal.value,
-        telefono: telefono.value,
-        fechaNacimiento: fechaNacimiento.value,
-        role: {
-          id: 2
-        },
-      }) 
-      if (response) {
-        toast("Registro exitoso", {
-          hideProgressBar: true,
-          autoClose: 600,
-          type: "success",
-          theme: "colored",
-          onClose: () => {
-            router.push({
-              name: 'Autenticacion',
-              query: { email: response.data.email }
-            })
-          },
-        })
+export default {
+  name: 'RegisterView',
+  data() {
+    return {
+      profileImagePreview: null,
+      formData: {
+        email: '',
+        password: '',
+        nombre: '',
+        apellido_paterno: '',
+        apellido_materno: '',
+        fecha_nacimiento: '',
+        telefono: '',
+        genero: '',
+        foto: null
       }
-    } catch (error) {
-      if (error.response) {
-        let messageError = error.response.data.message
-        toast(messageError, {
-          hideProgressBar: true,
-          autoClose: 1500,
-          type: "error",
-          theme: "colored",
+    }
+  },
+  computed: {
+    isFormValid() {
+      return (
+        this.formData.email &&
+        this.formData.password &&
+        this.formData.nombre &&
+        this.formData.apellido_paterno &&
+        this.formData.fecha_nacimiento &&
+        this.formData.password.length >= 6
+      )
+    }
+  },
+  methods: {
+    ...mapActions('auth', {
+      registerUser: 'registerUser'
+    }),
+
+    triggerFileInput() {
+      this.$refs.fileInput.click()
+    },
+
+    onImageChange(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      // Validar que sea imagen
+      if (!file.type.startsWith('image/')) {
+        toast.error('Por favor selecciona un archivo de imagen válido')
+        return
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('La imagen debe ser menor a 5MB')
+        return
+      }
+
+      // Crear preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        this.profileImagePreview = e.target.result
+        // Extraer solo la parte base64 (sin el prefijo data:image/...)
+        const base64Data = e.target.result.split(',')[1]
+        this.formData.foto = base64Data
+      }
+      reader.readAsDataURL(file)
+    },
+
+    removeImage() {
+      this.profileImagePreview = null
+      this.formData.foto = null
+      this.$refs.fileInput.value = ''
+    },
+
+    async handleRegister() {
+      try {
+        // Validar campos requeridos
+        if (!this.isFormValid) {
+          toast.error('Por favor completa todos los campos requeridos')
+          return
+        }
+
+        // Preparar datos para el backend
+        const userData = {
+          usuario: {
+            email: this.formData.email,
+            password: this.formData.password,
+            nombre: this.formData.nombre,
+            apellido_paterno: this.formData.apellido_paterno,
+            apellido_materno: this.formData.apellido_materno || null,
+            fecha_nacimiento: new Date(this.formData.fecha_nacimiento).toISOString(),
+            telefono: this.formData.telefono ? parseInt(this.formData.telefono) : null,
+            genero: this.formData.genero || null,
+            foto: this.formData.foto || null
+          }
+        }
+
+        await this.registerUser(userData)
+
+        toast.success('¡Usuario registrado exitosamente!', {
+          autoClose: 3000,
+          position: 'top-right'
+        })
+
+        // Redirigir al login después de un breve delay
+        setTimeout(() => {
+          this.$router.push('/inicio-sesion')
+        }, 2000)
+
+      } catch (error) {
+        toast.error(error.message || 'Error al registrar usuario', {
+          autoClose: 4000,
+          position: 'top-right'
         })
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>
-/* Estilos generales */
 .register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  padding: 20px;
-  flex-wrap: wrap;
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f8f9fa;
 }
 
-.register-image {
-  max-width: 350px;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.register-card {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  border: none;
 }
 
-.register-form {
-  max-width: 800px;
-  width: 100%;
+.card-header {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  border-radius: 15px 15px 0 0 !important;
 }
 
-.row {
-  margin-bottom: 1.5rem;
+.card-header h2 {
+  color: #2c3e50;
+  font-weight: 600;
 }
 
-.form-group label {
-  font-weight: normal;
-}
-
-.form-group input {
-  padding: 10px;
-}
-
-/* Centrado de la imagen y formulario */
-.form-title {
-  font-size: 2rem;
+.photo-section {
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 15px;
   margin-bottom: 1rem;
-  text-align: center; /* Centrar el título */
 }
 
-.invalid-feedback {
-  font-size: 0.9rem;
-  color: #dc3545;
+.photo-section h5 {
+  color: #2c3e50;
+  font-weight: 500;
 }
 
-/* Ajustes para pantallas pequeñas */
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 4px solid #e9ecef;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-avatar:hover {
+  border-color: #007bff;
+  transform: scale(1.05);
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #6c757d;
+}
+
+.avatar-placeholder i {
+  font-size: 4rem;
+}
+
+.photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.card-footer {
+  background: #fff;
+  border-top: 1px solid #eee;
+  border-radius: 0 0 15px 15px !important;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: #007bff;
+  border-color: #007bff;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .register-container {
+    padding: 1rem;
+  }
+  
+  .photo-actions {
     flex-direction: column;
-    align-items: center;
+    width: 100%;
   }
-
-  .register-image {
-    margin-bottom: 20px;
+  
+  .photo-actions .btn {
+    width: 100%;
   }
 }
-
-/* Botón de registro */
-.btn-outline-secondary {
-  text-align: center;
-}
-
-.w-100 {
-  width: 100%;
-}
-
-button[type="submit"] {
-  display: block;
-  margin-top: 20px;
-  width: 100%;
-  padding: 10px;
-}
-
 </style>

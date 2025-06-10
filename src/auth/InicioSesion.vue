@@ -3,7 +3,7 @@
     <!-- Imagen a la izquierda -->
     <div class="login-image">
       <img
-        src="@/assets/logoElectroShop.png"
+        src="@/assets/logo.jpg"
         alt="Imagen de inicio de sesión"
         style="width: 500px; height: auto"
       />
@@ -15,22 +15,22 @@
       <form @submit.prevent="handleSubmit">
         <!-- Campo de correo -->
         <div class="form-group">
-          <label for="username">Nombre de usuario</label>
+          <label for="email">Nombre de usuario</label>
           <div class="input-group">
             <span class="input-group-text">
               <i class="bi bi-person-fill"></i>
             </span>
             <input
-              type="username"
-              id="username"
-              v-model="username"
+              type="email"
+              id="email"
+              v-model="email"
               class="form-control"
-              :class="{ 'is-invalid': usernameError }"
+              :class="{ 'is-invalid': emailError }"
               placeholder="Ingresa tu nombre de usuario"
               required
             />
           </div>
-          <div v-if="usernameError" class="invalid-feedback">{{ usernameError }}</div>
+          <div v-if="emailError" class="invalid-feedback">{{ emailError }}</div>
         </div>
 
         <!-- Campo de contraseña -->
@@ -82,46 +82,45 @@
 import { ref } from "vue";
 import axios from "axios";
 import { toast } from 'vue3-toastify'
+import { useStore } from 'vuex'
 import 'vue3-toastify/dist/index.css';
 import router from "@/router";
 // Estado de los campos
-const username = ref("");
+const email = ref("");
 const password = ref("");
+const store = useStore()
 
 // Errores
-const usernameError = ref("");
+const emailError = ref("");
 const passwordError = ref("");
 
 // Función para manejar el envío del formulario
 const handleSubmit = async () => {
   try {
-    // Reiniciar errores
-    usernameError.value = "";
+    emailError.value = "";
     passwordError.value = "";
 
-    // Llamada al endpoint de login
-    const response = await axios.post("/api/v1/login", {
-      username: username.value,
+    const response = await axios.post("/login", {
+      email: email.value,
       password: password.value,
     });
     if (response) {
-      localStorage.setItem("userInfo", JSON.stringify(response.data));
-      localStorage.setItem("isLogged", "true");
-      let role = response.data.role.nombreRole;
-      console.log(response.data.isVerified)
-      if (response.data.isVerified) {
-        if (role === "CLIENT") {
-          router.push({ name: 'HomeScreen'})
-        } else {
-          router.push({ name: 'PerfilAdminitrador'})
-        }
-      } else {
-        sendToken(response.data.email)
-      }
+      const { token, message, ...userData } = response.data
+      store.commit('users/setUser', userData)
+      store.commit('users/setTokenAccess', token)
+      toast(message || "Login exitoso!!", {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "success",
+        theme: "colored",
+      })
+      setTimeout(() => {
+        router.push({ name: 'HomeScreen'})
+      }, 2000)
     }   
   } catch (error) {
     if (error.response) {
-      let messageError = error.response.data.message
+      let messageError = error.response.data.detailMessage
       toast(messageError, {
         hideProgressBar: true,
         autoClose: 1500,
@@ -131,39 +130,6 @@ const handleSubmit = async () => {
     }
   }
 };
-
-const sendToken = async (email) =>{
-  console.log(email)
-  try {
-    const response = await axios.get('/api/v1/send-token', {
-      params: { email },
-    });
-    if (response) {
-      toast("Verifica tu cuenta", {
-        hideProgressBar: true,
-        autoClose: 1500,
-        type: "warning",
-        theme: "colored",
-        onClose: () => {
-          router.push({
-            name: 'Autenticacion',
-            query: { email }
-          })
-        },
-      })
-    }
-  } catch (error) {
-    if (error.response) {
-      let messageError = error.response.data.message
-      toast(messageError, {
-        hideProgressBar: true,
-        autoClose: 1500,
-        type: "error",
-        theme: "colored",
-      })
-    }
-  }
-}
 
 </script>
 

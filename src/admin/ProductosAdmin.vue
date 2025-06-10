@@ -1,504 +1,226 @@
 <template>
-  <div class="container-fluid px-4">
-    <h1 class="text-center my-4">Gestión de Productos</h1>
+  <div>
+    <!-- Header principal -->
+    <MainHeader />
+    
+    <div class="container-fluid px-4">
+      <h1 class="text-center my-4">Gestión de Productos</h1>
 
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
-      <div
-        v-for="notification in notifications"
-        :key="notification.id"
-        class="toast show align-items-center text-bg-success border-0"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-      >
-        <div class="d-flex">
-          <div class="toast-body">
-            {{ notification.message }}
-          </div>
+      <!-- Botón para agregar producto -->
+      <div class="card shadow-lg rounded-4 p-4 border-0 bg-light mb-4">
+        <div class="d-flex justify-content-center">
           <button
-            type="button"
-            class="btn-close btn-close-white me-2 m-auto"
-            @click="closeNotification(notification.id)"
-          ></button>
+            class="btn btn-primary btn-lg d-flex align-items-center gap-3"
+            data-bs-toggle="modal"
+            data-bs-target="#productModal"
+            @click="openAddProductModal"
+          >
+            <i class="bi bi-plus-circle fs-4"></i>
+            <span>Agregar Nuevo Producto</span>
+          </button>
         </div>
       </div>
-    </div>
 
-    <div class="card shadow-lg rounded-4 p-4 border-0 bg-light">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-      <!-- Botón para agregar un nuevo producto -->
-      <button
-        class="btn btn-outline-primary d-flex align-items-center gap-2"
-        data-bs-toggle="modal"
-        data-bs-target="#productModal"
-        @click="openAddProductModal"
-      >
-        <i class="bi bi-plus-circle fs-5"></i>
-        <span>Agregar Producto</span>
-      </button>
-
-      <!-- Botón para agregar nueva categoría -->
-      <button
-        class="btn btn-outline-success d-flex align-items-center gap-2"
-        data-bs-toggle="modal"
-        data-bs-target="#categoryModal"
-        @click="openAddCategoryModal"
-      >
-        <i class="bi bi-folder-plus fs-5"></i>
-        <span>Agregar Categoría</span>
-      </button>
-
-      <!-- Botón para agregar un nuevo proveedor -->
-      <button
-        class="btn btn-outline-info d-flex align-items-center gap-2"
-        data-bs-toggle="modal"
-        data-bs-target="#providerModal"
-        @click="openAddProviderModal"
-      >
-        <i class="bi bi-building-add fs-5"></i>
-        <span>Agregar Proveedor</span>
-      </button>
-    </div>
-  </div>
-
-    <!-- Tabla de productos -->
-    <div class="card shadow-lg rounded-4 border-0">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-striped table-hover align-middle text-center mb-0">
+      <!-- Tabla de productos -->
+      <div class="card shadow-lg rounded-4 border-0">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center mb-0">
               <thead>
-              <tr>
-                <th class="text-center align-middle" style="width: 80px; background-color: #87CEEB; color: white;">
-                  <i class="bi bi-image"></i> Foto
-                </th>
-                <th class="align-middle" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-tag"></i> Nombre
-                </th>
-                <th class="align-middle" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-card-text"></i> Descripción
-                </th>
-                <th class="align-middle" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-person-circle"></i> Proveedor
-                </th>
-                <th class="align-middle" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-list"></i> Categoría
-                </th>
-                <th class="align-middle text-end" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-currency-dollar"></i> Precio
-                </th>
-                <th class="align-middle text-end" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-box"></i> Stock
-                </th>
-                <th class="align-middle text-center" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-check-circle"></i> Estado
-                </th>
-                <th class="align-middle text-center" style="background-color: #87CEEB; color: white;">
-                  <i class="bi bi-tools"></i> Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="product in products" 
-                :key="product.idProducto" 
-                :class="{ 'table-danger': product.stock === 0 }"
-              >
-                <td>
-                  <img 
-                    :src="product.imagenUrl" 
-                    alt="Foto" 
-                    class="rounded-circle border border-secondary" 
-                    style="width: 60px; height: 60px; object-fit: cover;"
-                  />
-                </td>
-                <td class="fw-bold">{{ product.nombreProducto }}</td>
-                <td class="text-truncate" style="max-width: 180px;" title="{{ product.descripcionProducto }}">
-                  {{ product.descripcionProducto }}
-                </td>
-                <td>
-                  <div class="d-flex justify-content-center align-items-center">
-                    {{ product.proveedor.nombreProveedor }}
-                    <button 
-                      class="btn btn-sm btn-outline-light ms-2" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#providerDetailsModal" 
-                      @click="openProviderDetails(product.proveedor.nombreProveedor)"
-                      title="Ver detalles del proveedor"
-                    >
-                      <i class="bi bi-info-circle text-primary"></i>
-                    </button>
-                  </div>
-                </td>
-                <td>{{ product.categoria.nombreCategoria }}</td>
-                <td>${{ product.precioUnitario.toLocaleString() }}</td>
-                <td>
-                  <div class="input-group input-group-sm">
-                    <input 
-                      type="number" 
-                      class="form-control" 
-                      v-model.number="product.stock" 
-                      readonly 
-                      @change="updateProductStock(product)"
-                    />
-                    <span class="input-group-text">unids.</span>
-                  </div>
-                </td>
-                <td>
-                  <span 
-                    class="badge" 
-                    :class="{
-                      'bg-success': product.activo,
-                      'bg-danger': !product.activo
-                    }"
-                  >
-                    {{ product.activo ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-                <td>
-                  <div class="btn-group">
-                    <button 
-                      class="btn btn-sm btn-warning" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#productModal" 
-                      @click="openEditProductModal(product)"
-                    >
-                      <i class="bi bi-pencil me-1"></i>Editar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card-footer text-muted text-center">
-        Total de productos: {{ products.length }}
-      </div>
-    </div>
-
-
-    <!-- Modal para editar o agregar producto (actualizado con categoría y descrpción del producto) -->
-    <div
-      class="modal fade"
-      id="productModal"
-      tabindex="-1"
-      aria-labelledby="productModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="productModalLabel">
-              {{ currentProduct.idProducto ? "Editar Producto" : "Agregar Producto" }}
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <form @submit.prevent="saveProduct">
-            <div class="modal-body">
-              <!-- Primera fila -->
-              <div class="row mb-3">
-                <div class="col-md-4">
-                  <label for="name" class="form-label">Nombre</label>
-                  <input
-                    v-model="currentProduct.nombreProducto"
-                    type="text"
-                    class="form-control"
-                    id="name"
-                    required
-                  />
-                </div>
-                <div class="col-md-4">
-                  <label for="photo" class="form-label">Foto URL</label>
-                  <input
-                    v-model="currentProduct.imagenUrl"
-                    type="url"
-                    class="form-control"
-                    id="photo"
-                    required
-                  />
-                </div>
-                <div class="col-md-4">
-                  <label for="description" class="form-label">Descripción</label>
-                  <input
-                    v-model="currentProduct.descripcionProducto"
-                    type="text"
-                    class="form-control"
-                    id="description"
-                    required
-                  />
-                </div>
-              </div>
-
-              <!-- Segunda fila -->
-              <div class="row mb-3">
-                <div class="col-md-4">
-                  <label for="provider" class="form-label">Proveedor</label>
-                  <select
-                    v-model="currentProduct.proveedor"
-                    class="form-select"
-                    id="provider"
-                    required
-                  >
-                    <option
-                      v-for="provider in providers"
-                      :key="provider.idProveedor"
-                      :value="provider"
-                    >
-                      {{ provider.nombreProveedor }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <label for="category" class="form-label">Categoría</label>
-                  <select
-                    v-model="currentProduct.categoria"
-                    class="form-select"
-                    id="category"
-                    required
-                  >
-                    <option
-                      v-for="category in categories"
-                      :key="category.idCategoria"
-                      :value="category"
-                    >
-                      {{ category.nombreCategoria }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <label for="status" class="form-label">Estado</label>
-                  <select
-                    v-model="currentProduct.activo"
-                    class="form-select"
-                    id="status"
-                    required
-                  >
-                    <option :value="true">Activo</option>
-                    <option :value="false">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Tercera fila -->
-              <div class="row">
-                <div class="col-md-6">
-                  <label for="price" class="form-label">Precio</label>
-                  <div class="input-group">
-                    <span class="input-group-text">$</span>
-                    <input
-                      v-model.number="currentProduct.precioUnitario"
-                      type="number"
-                      class="form-control"
-                      id="price"
-                      required
-                    />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label for="stock" class="form-label">Cantidad en Stock</label>
-                  <div class="input-group">
-                    <input
-                      v-model.number="currentProduct.stock"
-                      type="number"
-                      class="form-control"
-                      id="stock"
-                      required
-                    />
-                    <span class="input-group-text">unidades</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-              <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para agregar categoría -->
-    <div
-      class="modal fade"
-      id="categoryModal"
-      tabindex="-1"
-      aria-labelledby="categoryModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="categoryModalLabel">Agregar Categoría</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <form @submit.prevent="saveCategory">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="categoryName" class="form-label">Nombre Categoría</label>
-                <input
-                  v-model="newCategory.nombreCategoria"
-                  type="text"
-                  class="form-control"
-                  id="categoryName"
-                  required
-                />
-              </div>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="categoryName" class="form-label">Descripción Categoría</label>
-                <input
-                  v-model="newCategory.descripcionCategoria"
-                  type="text"
-                  class="form-control"
-                  id="categoryName"
-                  required
-                />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-              <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para agregar proveedor -->
-    <div
-      class="modal fade"
-      id="providerModal"
-      tabindex="-1"
-      aria-labelledby="providerModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="providerModalLabel">Agregar Proveedor</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <form @submit.prevent="saveNewProvider">
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="newProviderName" class="form-label">Nombre</label>
-                <input
-                  v-model="newProvider.nombreProveedor"
-                  type="text"
-                  class="form-control"
-                  id="newProviderName"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="newProviderPhone" class="form-label">Teléfono</label>
-                <input
-                  v-model="newProvider.telefono"
-                  type="text"
-                  class="form-control"
-                  id="newProviderPhone"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="newProviderUrl" class="form-label">URL</label>
-                <input
-                  v-model="newProvider.urlProveedor"
-                  type="url"
-                  class="form-control"
-                  id="newProviderUrl"
-                  required
-                />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-              <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-                Guardar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para detalles del proveedor (sactualizado) -->
-    <div
-      class="modal fade"
-      id="providerDetailsModal"
-      tabindex="-1"
-      aria-labelledby="providerDetailsModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="providerDetailsModalLabel">
-              Detalles del Proveedor
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label fw-bold">Nombre:</label>
-              <p>{{ selectedProvider.nombreProveedor }}</p>
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Teléfono:</label>
-              <p>{{ selectedProvider.telefono }}</p>
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">URL:</label>
-              <p>
-                <a :href="selectedProvider.urlProveedor" target="_blank">{{
-                  selectedProvider.urlProveedor
-                }}</a>
-              </p>
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Estado:</label>
-              <p>
-                <span
-                  class="badge"
-                  :class="selectedProvider.activo ? 'bg-success' : 'bg-danger'"
+                <tr>
+                  <th class="text-center align-middle" style="width: 100px; background-color: #2563eb; color: white;">
+                    <i class="bi bi-image"></i> Foto
+                  </th>
+                  <th class="align-middle" style="background-color: #2563eb; color: white;">
+                    <i class="bi bi-tag"></i> Nombre
+                  </th>
+                  <th class="align-middle" style="background-color: #2563eb; color: white;">
+                    <i class="bi bi-card-text"></i> Descripción
+                  </th>
+                  <th class="align-middle text-end" style="background-color: #2563eb; color: white;">
+                    <i class="bi bi-currency-dollar"></i> Precio
+                  </th>
+                  <th class="align-middle text-end" style="background-color: #2563eb; color: white;">
+                    <i class="bi bi-box"></i> Stock
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr 
+                  v-for="product in products" 
+                  :key="product.id_articulo" 
+                  :class="{ 'table-warning': product.cantidad === 0 }"
                 >
-                  {{ selectedProvider.activo ? "Activo" : "Inactivo" }}
-                </span>
-              </p>
-            </div>
+                  <td>
+                    <img 
+                      v-if="product.imagen"
+                      :src="product.imagen" 
+                      alt="Foto del producto" 
+                      class="rounded border border-secondary" 
+                      style="width: 80px; height: 80px; object-fit: cover;"
+                    />
+                    <div v-else class="bg-light rounded d-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                      <i class="bi bi-image text-muted fs-3"></i>
+                    </div>
+                  </td>
+                  <td class="fw-bold">{{ product.nombre }}</td>
+                  <td class="text-truncate" style="max-width: 200px;" :title="product.descripcion">
+                    {{ product.descripcion }}
+                  </td>
+                  <td class="text-end">${{ product.precio?.toLocaleString() }}</td>
+                  <td class="text-end">
+                    <span class="badge" :class="product.cantidad === 0 ? 'bg-danger' : 'bg-success'">
+                      {{ product.cantidad }} unids.
+                    </span>
+                  </td>
+                </tr>
+                <tr v-if="products.length === 0">
+                  <td colspan="6" class="text-muted py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No hay productos registrados
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-              Cerrar
-            </button>
+        </div>
+        <div class="card-footer text-muted text-center">
+          Total de productos: {{ products.length }}
+        </div>
+      </div>
+
+      <!-- Modal para agregar/editar producto -->
+      <div
+        class="modal fade"
+        id="productModal"
+        tabindex="-1"
+        aria-labelledby="productModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="productModalLabel">
+                {{ currentProduct.id_articulo ? "Editar Producto" : "Agregar Producto" }}
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <form @submit.prevent="saveProduct">
+              <div class="modal-body">
+                <!-- Primera fila -->
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="nombre" class="form-label">Nombre del Producto</label>
+                    <input
+                      v-model="currentProduct.nombre"
+                      type="text"
+                      class="form-control"
+                      id="nombre"
+                      required
+                      placeholder="Ej: Laptop Dell Inspiron"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="precio" class="form-label">Precio</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input
+                        v-model.number="currentProduct.precio"
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        id="precio"
+                        required
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Segunda fila -->
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea
+                      v-model="currentProduct.descripcion"
+                      class="form-control"
+                      id="descripcion"
+                      rows="3"
+                      required
+                      placeholder="Describe las características del producto..."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Tercera fila -->
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="cantidad" class="form-label">Cantidad en Stock</label>
+                    <div class="input-group">
+                      <input
+                        v-model.number="currentProduct.cantidad"
+                        type="number"
+                        class="form-control"
+                        id="cantidad"
+                        required
+                        min="0"
+                        placeholder="0"
+                      />
+                      <span class="input-group-text">unidades</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="fotografia" class="form-label">Fotografía del Producto</label>
+                    <input
+                      type="file"
+                      class="form-control"
+                      id="fotografia"
+                      accept="image/*"
+                      @change="handleImageUpload"
+                      ref="fileInput"
+                    />
+                  </div>
+                </div>
+
+                <!-- Preview de imagen -->
+                <div v-if="imagePreview" class="row mb-3">
+                  <div class="col-12 text-center">
+                    <label class="form-label">Vista previa:</label>
+                    <div>
+                      <img 
+                        :src="imagePreview" 
+                        alt="Vista previa" 
+                        class="img-thumbnail"
+                        style="max-width: 200px; max-height: 200px;"
+                      />
+                      <br>
+                      <button 
+                        type="button" 
+                        class="btn btn-sm btn-outline-danger mt-2"
+                        @click="removeImage"
+                      >
+                        <i class="bi bi-trash"></i> Eliminar imagen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                  Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary" :disabled="isLoading">
+                  <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ isLoading ? 'Guardando...' : 'Guardar Producto' }}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -506,250 +228,270 @@
   </div>
 </template>
 
-<script>
-import axios from "axios";
-import { toast } from "vue3-toastify";
-export default {
-  data() {
-    return {
-      notifications: [],
-      products: [],
-      providers: [],
-      categories: [],
-      currentProduct: {
-        idProducto: null,
-        nombreProducto: "",
-        descripcionProducto: "",
-        imagenUrl: "",
-        proveedor: "",
-        categoria: "",
-        precioUnitario: 0,
-        stock: 0,
-        activo: false,
-      },
-      newCategory: {
-        nombreCategoria: "",
-        descripcionCategoria: "",
-      },
-      newProvider: {
-        nombreProveedor: "",
-        telefono: "",
-        urlProveedor: "",
-        active: true,
-      },
-      selectedProvider: {
-        idProveedor: null,
-        nombreProveedor: "",
-        telefono: "",
-        urlProveedor: "",
-        activo: false,
-      },
-    };
-  },
-  created() {
-    this.fetchProducts();
-    this.fetchCategories();
-    this.fetchProviders();
-  },
-  methods: {
-    async fetchProducts() {
-      try {
-        const response = await axios.get("/api/v1/productos");
-        const products = response.data;
-        this.products = [...products];
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    },
-    async fetchCategories() {
-      try {
-        const response = await axios.get("/api/v1/categorias");
-        this.categories = response.data;
-      } catch (error) {
-        console.error("Error al cargar las categorías:", error);
-        this.categories = [];
-      }
-    },
-    async fetchProviders() {
-      try {
-        const response = await axios.get("/api/v1/proveedores");
-        this.providers = response.data;
-      } catch (error) {
-        console.error("Error al cargar los proveedores:", error);
-        this.providers = [];
-      }
-    },
-    openAddProductModal() {
-      this.currentProduct = {
-        idProducto: null,
-        nombreProducto: "",
-        descripcionProducto: "",
-        imagenUrl: "",
-        proveedor: "",
-        categoria: "",
-        precioUnitario: 0,
-        stock: 0,
-        activo: false,
-      }
-    },
-    openAddCategoryModal() {
-      this.newCategory = {};
-    },
-    openAddProviderModal() {
-      this.newProvider = {};
-    },
-    async saveCategory() {
-      const proxy = new Proxy(this.newCategory, {
-        get(target, prop) {
-          if (prop === "getOriginal") {
-            return () => JSON.parse(JSON.stringify(target)); // Deserializa para eliminar el Proxy
-          }
-          return prop in target ? target[prop] : undefined;
-        },
-      });
-      try {
-        const response = await axios.post("/api/v1/categorias", proxy.getOriginal());
-        if (response) {
-          toast("Categoría guardada correctamente", {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "success",
-            theme: "colored",
-          });
-          this.fetchCategories();
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    },
-    async saveNewProvider() {
-      const proxy = new Proxy(this.newProvider, {
-        get(target, prop) {
-          if (prop === "getOriginal") {
-            return () => JSON.parse(JSON.stringify(target)); // Deserializa para eliminar el Proxy
-          }
-          return prop in target ? target[prop] : undefined;
-        },
-      });
-      try {
-        const response = await axios.post("/api/v1/proveedores", proxy.getOriginal());
-        if (response) {
-          toast("Proveedor guardado correctamente", {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "success",
-            theme: "colored",
-          });
-          this.fetchProviders();
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    },
-    openEditProductModal(product) {
-      this.currentProduct = { ...product };
-    },
-    async saveProduct() {
-      let successMessage = ''
-      if (this.currentProduct.idProducto) {
-        successMessage = "Producto actualizado correctamente";
-      } else {
-        successMessage = "Producto guardado correctamente";
-      }
-      try {
-        const response = await axios.post(
-          "/api/v1/productos", this.currentProduct
-        );
-        if (response) {
-          toast(successMessage, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "success",
-            theme: "colored",
-          });
-          this.fetchProducts();
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    },
-    openProviderDetails(providerName) {
-      console.log(providerName);
-      console.log(this.providers);
-      const provider = this.providers.find((p) => p.nombreProveedor === providerName);
-      if (provider) {
-        this.selectedProvider = { ...provider };
-      }
-    },
-    updateProductStock(product) {
-      // Asegurarse de que el stock no sea negativo
-      if (product.stock < 0) product.stock = 0;
-    },
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useStore } from 'vuex'
+import MainHeader from "@/components/MainHeader.vue"
+import axios from "axios"
+import { toast } from "vue3-toastify"
 
-    // Método para mostrar una notificación
-    showNotification(message) {
-      const id = Date.now(); // Generar un ID único para la notificación
-      this.notifications.push({ id, message });
+const store = useStore()
 
-      // Eliminar la notificación después de 3 segundos
-      setTimeout(() => {
-        this.notifications = this.notifications.filter(
-          (notification) => notification.id !== id
-        );
-      }, 3000);
-    },
+// Estado
+const products = ref([])
+const isLoading = ref(false)
+const imagePreview = ref(null)
+const fileInput = ref(null)
 
-    // Método para cerrar una notificación manualmente
-    closeNotification(id) {
-      this.notifications = this.notifications.filter(
-        (notification) => notification.id !== id
-      );
-    },
-  },
-};
+// Obtener datos del usuario desde Vuex
+const user = computed(() => store.state.users.user)
+const tokenAccess = computed(() => store.state.users.tokenAccess)
+
+// Producto actual para editar/agregar
+const currentProduct = ref({
+  id_articulo: null,
+  nombre: '',
+  descripcion: '',
+  precio: 0,
+  cantidad: 0,
+  fotografia: null
+})
+
+// Cargar productos al montar el componente
+onMounted(() => {
+  fetchProducts()
+})
+
+// Función para obtener todos los productos
+const fetchProducts = async () => {
+  try {
+    const response = await axios.get('/todos_articulos')
+    
+    // Procesar las imágenes de los productos
+    products.value = response.data.map(product => {
+      return {
+        ...product,
+        imagen: product.fotografia ? `data:image/jpeg;base64,${product.fotografia}` : null
+      }
+    })
+    
+  } catch (error) {
+    console.error('Error al cargar productos:', error)
+    if (error.response) {
+      let messageError = error.response.data.message || 'Error al cargar productos'
+      toast(messageError, {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      })
+    }
+  }
+}
+
+// Abrir modal para agregar producto
+const openAddProductModal = () => {
+  currentProduct.value = {
+    id_articulo: null,
+    nombre: '',
+    descripcion: '',
+    precio: 0,
+    cantidad: 0,
+    fotografia: null
+  }
+  imagePreview.value = null
+  
+  // Limpiar el input de archivo
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+// Manejar subida de imagen
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast('Por favor selecciona un archivo de imagen válido', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      })
+      return
+    }
+    
+    // Validar tamaño de archivo (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast('La imagen no puede ser mayor a 5MB', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      })
+      return
+    }
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const base64String = e.target.result.split(',')[1] // Remover el prefijo data:image/...;base64,
+      currentProduct.value.fotografia = base64String
+      imagePreview.value = e.target.result
+    }
+    reader.onerror = () => {
+      toast('Error al leer el archivo de imagen', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+// Función para eliminar la imagen
+const removeImage = () => {
+  currentProduct.value.fotografia = null
+  imagePreview.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+// Guardar producto
+const saveProduct = async () => {
+  if (!user.value || !tokenAccess.value) {
+    toast('Debes iniciar sesión para realizar esta acción', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "error",
+      theme: "colored",
+    })
+    return
+  }
+
+  // Validaciones adicionales
+  if (!currentProduct.value.nombre.trim()) {
+    toast('El nombre del producto es requerido', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "error",
+      theme: "colored",
+    })
+    return
+  }
+
+  if (!currentProduct.value.descripcion.trim()) {
+    toast('La descripción del producto es requerida', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "error",
+      theme: "colored",
+    })
+    return
+  }
+
+  if (currentProduct.value.precio <= 0) {
+    toast('El precio debe ser mayor a 0', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "error",
+      theme: "colored",
+    })
+    return
+  }
+
+  if (currentProduct.value.cantidad < 0) {
+    toast('La cantidad no puede ser negativa', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "error",
+      theme: "colored",
+    })
+    return
+  }
+
+  isLoading.value = true
+  
+  try {
+    // Preparar el objeto para enviar al backend
+    // Enviamos la fotografia como string base64, el backend se encarga de convertirla a byte[]
+    const articuloData = {
+      articulo: {
+        id_articulo: currentProduct.value.id_articulo,
+        nombre: currentProduct.value.nombre.trim(),
+        descripcion: currentProduct.value.descripcion.trim(),
+        precio: parseFloat(currentProduct.value.precio),
+        cantidad: parseInt(currentProduct.value.cantidad),
+        fotografia: currentProduct.value.fotografia, // Enviamos como string base64
+        id_usuario: user.value.id_usuario,
+        token: tokenAccess.value
+      }
+    }
+
+    console.log('Enviando datos al backend:', {
+      ...articuloData,
+      articulo: {
+        ...articuloData.articulo,
+        fotografia: articuloData.articulo.fotografia ? '[BASE64_STRING]' : null
+      }
+    })
+
+    const response = await axios.post('/alta_articulo', articuloData)
+    
+    if (response.status === 200) {
+      const successMessage = currentProduct.value.id_articulo 
+        ? "Producto actualizado correctamente" 
+        : "Producto guardado correctamente"
+      
+      toast(successMessage, {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "success",
+        theme: "colored",
+      })
+
+      await fetchProducts()
+      
+      // Cerrar modal
+      const modal = document.getElementById('productModal')
+      const modalInstance = bootstrap.Modal.getInstance(modal)
+      modalInstance.hide()
+      
+    }
+    
+  } catch (error) {
+    console.error('Error al guardar producto:', error)
+    if (error.response) {
+      let messageError = error.response.data.message || 'Error al guardar el producto'
+      toast(messageError, {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      })
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
-<style>
+<style scoped>
 .container-fluid {
   max-width: 1400px;
 }
 
 .table th {
-  background-color: #2c3e50;
-  color: white;
   font-weight: 500;
+  border: none;
+}
+
+.table td {
+  vertical-align: middle;
+  border-color: #e9ecef;
 }
 
 .btn-group {
@@ -761,7 +503,40 @@ export default {
 }
 
 .badge {
-  min-width: 90px;
+  min-width: 70px;
   padding: 0.5em 0.8em;
+}
+
+.card {
+  border: none !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.form-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.table-warning {
+  background-color: #fff3cd;
+}
+
+.img-thumbnail {
+  border: 2px solid #dee2e6;
 }
 </style>

@@ -13,38 +13,41 @@
               <h6>Inicio</h6>
             </router-link>
           </li>
-          <li>
-            <a 
-              href="#" 
-              class="nav-link text-dark text-decoration-none p-2 d-inline-block link-hover"
-              @click.prevent="toggleContactModal"
+          <router-link 
+              to="/productos-admin" 
+              class="text-dark text-decoration-none p-2 d-inline-block link-hover"
             >
-              Contacto
-            </a>
-          </li>
+              <h6>Nuevo producto</h6>
+            </router-link>
         </ul>
       </nav>
 
       <div class="actions-group">
-        <!-- UserIcon con opción condicional -->
-        <div class="actions-group">
-          <div class="user-actions">
-            <RouterLink :to="isLogged ? '/perfil-usuario' : '/inicio-sesion'">
-              <button class="icon-button user-button">
-                <UserIcon />
-                <span class="user-text">{{ isLogged ? 'Mi Perfil' : 'Iniciar Sesión' }}</span>
-              </button>
-            </RouterLink>
+        <div class="user-actions">
+          <RouterLink :to="isLoggedIn ? '/perfil-usuario' : '/inicio-sesion'" class="user-link">
+            <button class="icon-button user-button">
+              <!-- Mostrar imagen del usuario si existe, sino UserIcon -->
+              <div class="user-avatar-container">
+                <img 
+                  v-if="userImageUrl" 
+                  :src="userImageUrl" 
+                  alt="Foto de perfil"
+                  class="user-avatar-image"
+                />
+                <UserIcon v-else class="user-avatar-icon" />
+              </div>
+              <span class="user-text">{{ isLoggedIn ? 'Mi Perfil' : 'Iniciar Sesión' }}</span>
+            </button>
+          </RouterLink>
 
-            <!-- Carrito -->
-            <RouterLink to="/carrito-compras">
-              <button class="icon-button cart-button">
-                <ShoppingCartIcon />
-                <span class="cart-count">{{ cartItemsCount }}</span>
-                <span class="cart-text">Mi carrito</span>
-              </button>
-            </RouterLink>
-          </div>
+          <!-- Carrito -->
+          <RouterLink to="/carrito-compras" class="cart-link">
+            <button class="icon-button cart-button">
+              <ShoppingCartIcon />
+              <span class="cart-count">{{ cartItemsCount }}</span>
+              <span class="cart-text">Mi carrito</span>
+            </button>
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -102,23 +105,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useStore } from 'vuex';
 import { SearchIcon, ShoppingCartIcon, UserIcon } from "lucide-vue-next";
 import axios from "axios";
 
+const store = useStore();
+
 let searchQuery = ref("");
 let isSearchBarEnabled = ref(true);
-let cartItemsCount = ref(1);
+let cartItemsCount = ref(0);
 
-const user = JSON.parse(localStorage.getItem("userInfo"));
-const isLogged = JSON.parse(localStorage.getItem("isLogged"));
+// Obtener datos del usuario desde Vuex
+const user = computed(() => store.state.users.user);
+const tokenAccess = computed(() => store.state.users.tokenAccess);
+
+// Verificar si está logueado basado en tokenAccess
+const isLoggedIn = computed(() => {
+  return tokenAccess.value && tokenAccess.value.length > 0;
+});
+
+// URL de la imagen del usuario
+const userImageUrl = computed(() => {
+  if (user.value && user.value.foto) {
+    return `data:image/jpeg;base64,${user.value.foto}`;
+  }
+  return null;
+});
 
 const fetchCartItemsCount = async () => {
   try {
-    const response = await axios.get("/api/v1/cart/count-items/", {
-      params: { idCarrito: user.carrito.idCarrito }
-    });
-    cartItemsCount.value = response.data;
+      const response = await axios.post("/cuenta_carrito", {
+        id_usuario: user.value.id_usuario,
+        token: tokenAccess.value,
+      });
+      cartItemsCount.value = response.data
   } catch (error) {
     console.error("Error al contar los items del carrito:", error);
     cartItemsCount.value = 0;
@@ -126,7 +147,9 @@ const fetchCartItemsCount = async () => {
 };
 
 onMounted(() => {
-  fetchCartItemsCount();
+  if (isLoggedIn) {
+    fetchCartItemsCount();
+  }
 });
 
 const contacts = ref([
@@ -234,6 +257,24 @@ const toggleContactModal = () => {
   align-items: center;
 }
 
+/* Quitar TODAS las decoraciones de links */
+.user-link,
+.cart-link {
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.user-link:hover,
+.cart-link:hover,
+.user-link:focus,
+.cart-link:focus,
+.user-link:active,
+.cart-link:active {
+  text-decoration: none !important;
+  color: inherit !important;
+  outline: none;
+}
+
 /* Iconos y botones */
 .icon-button {
   background: none;
@@ -243,6 +284,8 @@ const toggleContactModal = () => {
   color: #4b5563;
   transition: color 0.3s ease;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .icon-button:hover {
@@ -255,6 +298,31 @@ const toggleContactModal = () => {
 
 .user-button {
   position: relative;
+}
+
+/* Estilos para el avatar del usuario */
+.user-avatar-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 0.5rem;
+}
+
+.user-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-avatar-icon {
+  width: 24px;
+  height: 24px;
+  color: #4b5563;
 }
 
 .cart-count {
@@ -279,7 +347,6 @@ const toggleContactModal = () => {
 }
 
 .user-text {
-  margin-left: 0.5rem;
   font-size: 0.875rem;
   color: #4b5563;
 }

@@ -5,104 +5,110 @@
       <h2 class="mb-4">Carrito de Compras</h2>
 
       <!-- Verificación de datos -->
-      <template v-if="cartLenght">
-        <!-- Grid container -->
+      <template v-if="cartLength > 0">
         <div class="row">
-          <!-- Lista de Productos - Ocupa 8 columnas en pantallas grandes -->
           <div class="col-md-8">
             <div class="card shadow-md mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Productos en tu carrito</h5>
+                <button 
+                  class="btn btn-outline-danger btn-sm"
+                  @click="clearCart"
+                  :disabled="isLoading"
+                >
+                  <i class="bi bi-trash"></i> Vaciar carrito
+                </button>
+              </div>
               <div class="card-body">
                 <!-- Encabezado de la lista -->
                 <div class="d-none d-md-flex w-full border-bottom pb-2 mb-3">
-                  <div class="col-6">Producto</div>
+                  <div class="col-5">Producto</div>
                   <div class="col-2 text-center">Cantidad</div>
-                  <div class="col-2 text-center">Precio</div>
+                  <div class="col-2 text-center">Precio Unit.</div>
                   <div class="col-2 text-center">Subtotal</div>
+                  <div class="col-1 text-center">Acción</div>
                 </div>
 
                 <!-- Items del carrito -->
-                <template v-if="cartLenght > 0">
-                  <div
-                    v-for="item in cart"
-                    :key="item.id"
-                    class="row align-items-center py-3 border-bottom"
-                  >
-                    <!-- Información del producto -->
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
-                      <div class="d-flex align-items-center">
-                        <img
-                          :src="item.producto.imagenUrl"
-                          :alt="item.producto.nombreProducto"
-                          class="cart-item-image me-3"
-                          style="width: 80px; height: 80px; object-fit: cover"
-                        />
-                        <div>
-                          <h6 class="mb-0">{{ item.producto.nombreProducto }}</h6>
-                          <small class="text-muted"
-                            >Proveedor: {{ item.producto.proveedor.nombreProveedor }}</small
-                          >
-                        </div>
+                <div
+                  v-for="item in cart"
+                  :key="item.id_articulo"
+                  class="row align-items-center py-3 border-bottom"
+                >
+                  <!-- Información del producto -->
+                  <div class="col-12 col-md-5 mb-2 mb-md-0">
+                    <div class="d-flex align-items-center">
+                      <img
+                        :src="item.imagen || defaultImage"
+                        :alt="item.nombre || 'Producto'"
+                        class="cart-item-image me-3"
+                        style="width: 80px; height: 80px; object-fit: cover"
+                      />
+                      <div>
+                        <h6 class="mb-0">{{ item.nombre || '' }}</h6>
+                        <small class="text-muted">
+                          {{ item.descripcion || '' }}
+                        </small>
                       </div>
                     </div>
+                  </div>
 
-                    <!-- Control de cantidad -->
-                    <div class="col-12 col-md-2 mb-2 mb-md-0">
-                      <div
-                        class="d-flex justify-content-center align-items-center"
-                      >
-                        <button
-                          class="btn btn-sm btn-outline-secondary"
-                          @click="decreaseQuantity(item)"
-                        >
-                          <i class="bi bi-dash"></i>
-                          <!-- Ícono de menos -->
-                        </button>
-                        <input
-                          type="number"
-                          class="form-control form-control-sm mx-2 text-center"
-                          style="width: 60px"
-                          v-model.number="item.cantidad"
-                          readonly
-                          :max="item.producto.stock"
-                        />
-                        <button
-                          class="btn btn-sm btn-outline-secondary"
-                          :disabled="item.cantidad >= item.producto.stock"
-                          @click="increaseQuantity(item)"
-                        >
-                          <i class="bi bi-plus"></i>
-                          <!-- Ícono de más -->
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Precio unitario -->
-                    <div class="col-6 col-md-2 text-end text-md-center">
-                      <span class="d-inline d-md-none">Precio: </span>
-                      {{ formatPrice(item.producto.precioUnitario) }}
-                    </div>
-
-                    <!-- Subtotal -->
-                    <div class="col-6 col-md-2 text-end text-md-center">
-                      <span class="d-inline d-md-none">Subtotal: </span>
-                      {{ formatPrice(item.producto.precioUnitario * item.cantidad) }}
+                  <!-- Control de cantidad -->
+                  <div class="col-6 col-md-2 mb-2 mb-md-0">
+                    <div class="d-flex justify-content-center align-items-center">
                       <button
-                        class="btn btn-sm text-danger ms-2"
-                        @click="removeItem(item)"
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="decreaseQuantity(item)"
+                        :disabled="item.cantidad <= 1 || isLoading"
                       >
-                        <i class="bi bi-trash"></i>
+                        <i class="bi bi-dash"></i>
+                      </button>
+                      <input
+                        type="number"
+                        class="form-control form-control-sm mx-2 text-center"
+                        style="width: 60px"
+                        v-model.number="item.cantidad"
+                        readonly
+                      />
+                      <button
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="increaseQuantity(item)"
+                        :disabled="isLoading"
+                      >
+                        <i class="bi bi-plus"></i>
                       </button>
                     </div>
                   </div>
-                </template>
 
-                <!-- Carrito vacío -->
-                <div v-else class="text-center py-5">
-                  <i class="bi bi-cart-x fs-1 text-muted"></i>
-                  <p class="mt-2">Tu carrito está vacío</p>
-                  <router-link to="/products" class="btn btn-primary">
-                    Continuar Comprando
-                  </router-link>
+                  <!-- Precio unitario -->
+                  <div class="col-6 col-md-2 text-end text-md-center">
+                    <span class="d-inline d-md-none">Precio: </span>
+                    {{ formatPrice(item.precio || 0) }}
+                  </div>
+
+                  <!-- Subtotal del item -->
+                  <div class="col-6 col-md-2 text-end text-md-center">
+                    <span class="d-inline d-md-none">Subtotal: </span>
+                    <strong>{{ formatPrice((item.precio || 0) * (item.cantidad || 0)) }}</strong>
+                  </div>
+
+                  <!-- Botón eliminar -->
+                  <div class="col-6 col-md-1 text-end text-md-center">
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      @click="removeItem(item)"
+                      :disabled="isLoading"
+                      title="Eliminar producto"
+                    >
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Loading overlay para operaciones -->
+                <div v-if="isLoading" class="text-center py-3">
+                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                  <span class="text-muted">Actualizando carrito...</span>
                 </div>
               </div>
             </div>
@@ -113,65 +119,43 @@
             <div class="card shadow-sm">
               <div class="card-body">
                 <h5 class="card-title mb-4">Resumen de Compra</h5>
+                
+                <!-- Cálculos del carrito -->
+                <div class="mb-4">
+                  <div class="d-flex justify-content-between mb-2">
+                    <span>Artículos ({{ totalItems }}):</span>
+                    <span>{{ formatPrice(subtotal) }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2">
+                    <span>Envío:</span>
+                    <span class="text-success">Gratis</span>
+                  </div>
+                  <hr>
+                  <div class="d-flex justify-content-between mb-3">
+                    <strong>Total:</strong>
+                    <strong class="text-primary fs-5">{{ formatPrice(total) }}</strong>
+                  </div>
+                </div>
 
                 <!-- Dirección de envío -->
                 <div class="mb-4">
                   <h6 class="mb-2">Dirección de Envío</h6>
-                  <address class="mb-0" v-if="cart.shippingAddress"></address>
                   <button
                     class="btn btn-sm btn-outline-primary mt-2"
                     @click="showAddressForm = true"
                   >
                     Ver dirección
                   </button>
-                  <!-- Modal para editar dirección -->
-                  <template v-if="showAddressForm">
-                    <div class="modal-overlay">
-                      <div class="modal-content shadow bg-white">
-                        <h5>Dirección de entrega</h5>
-                        <div class="mb-3">
-                          <label for="street" class="form-label">
-                            {{ editAddress }}
-                          </label>
-                        </div>
-                        <div class="d-flex justify-content-end">
-                          <button
-                            type="button"
-                            class="btn btn-primary"
-                            @click="showAddressForm = false"
-                          >
-                            Cerrar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
                 </div>
-
-                <!-- Totales -->
+                
                 <div class="border-top pt-3">
-                  <div class="d-flex justify-content-between mb-2">
-                    <span>Subtotal</span>
-                    <span>{{ formatPrice( subTotal ) }}</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-2">
-                    <span>Envío</span>
-                    <span>{{ formatPrice(0.0) }}</span>
-                  </div>
-                  <div
-                    class="d-flex justify-content-between fw-bold mt-3 pt-3 border-top"
-                  >
-                    <span>Total</span>
-                    <span>{{ formatPrice( subTotal ) }}</span>
-                  </div>
-
                   <router-link
-                    :to="{ path: '/metodo-pago', query: { subTotal: subTotal } }"
+                    :to="{ path: '/metodo-pago' }"
                     class="w-100 mt-4"
                   >
                     <button
                       class="btn btn-primary w-100"
-                      :disabled="!cart.length"
+                      :disabled="!cartLength || isLoading"
                     >
                       Proceder al Pago
                     </button>
@@ -188,11 +172,12 @@
           </div>
         </div>
       </template>
+      
       <template v-else>
         <div class="text-center py-5">
           <h3>Tu carrito está vacío...</h3>
           <div class="text-center">
-            <img src="../assets/carritovacio.png" alt="Seguridad" style="max-width: 300px;" />
+            <img :src="defaultImage" alt="Carrito vacío" style="max-width: 300px;" />
           </div>
           <p class="text-muted">¡Realiza tu primer pedido!</p>
           <router-link
@@ -207,160 +192,253 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, onMounted } from "vue";
+<script setup>
+import { ref, computed, onMounted } from "vue";
 import MainHeader from "@/components/MainHeader.vue";
 import axios from "axios";
-export default defineComponent({
-  name: "ShoppingCart",
+import { useStore } from 'vuex';
+import { toast } from 'vue3-toastify';
 
-  components: {
-    MainHeader,
-  },
+const store = useStore();
+const cart = ref([]);
+const showAddressForm = ref(false);
+const isLoading = ref(false);
+const defaultImage = new URL('@/assets/producto_sinfoto.png', import.meta.url).href;
 
-  setup() {
-    const cart = ref([]);
-    const cartLenght = ref(0);
-    const subTotal = ref(0);
-    const showAddressForm = ref(false);
-    const user = JSON.parse(localStorage.getItem("userInfo"));
+// Datos del usuario desde Vuex
+const user = computed(() => store.state.users?.user);
+const tokenAccess = computed(() => store.state.users?.tokenAccess);
 
-    const loadCart = async () => {
-      try {
-        const response = await axios.get("/api/v1/cart/by-user/", {
-          params: { idCliente: user.idCliente },
-        });
-        cart.value = response.data;
-        cartLenght.value = cart.value.length;
-        getSubTotal()
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    };
+// Verificar autenticación
+const isAuthenticated = computed(() => user.value && tokenAccess.value);
 
-    const formatAddres = () => {
-      if (!user || !user.calle || !user.colonia || !user.numero || !user.codigoPostal) {
-        return "Dirección incompleta";
-      }
-      return `${user.calle} ${user.numero}, ${user.colonia}, CP ${user.codigoPostal}`;
-    }
-    const editAddress = ref(formatAddres());
+// Longitud del carrito
+const cartLength = computed(() => Array.isArray(cart.value) ? cart.value.length : 0);
 
-    // Formatear precio
-    const formatPrice = (price) =>
-      new Intl.NumberFormat("es-MX", {
-        style: "currency",
-        currency: "MXN",
-      }).format(price);
-    
-    const getSubTotal = async () => {
-      console.log(user.carrito.idCarrito)
-      try {
-        const response = await axios.get("/api/v1/cart/get-total/", {
-          params: { idCarrito: user.carrito.idCarrito }
-        })
-        if (response) {
-          subTotal.value = parseFloat(response.data).toFixed(2);
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    }
-
-    // Actualizar cantidad de un producto
-    const updateQuantity = async (item) => {
-      item['carrito'] = user.carrito;
-      try {
-        const response = await axios.post("/api/v1/cart/update", item)
-        if (response ) {
-          loadCart()
-          getSubTotal()
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    };
-
-    const increaseQuantity = (item) => {
-      item.cantidad++;
-      updateQuantity(item);
-    };
-
-    const decreaseQuantity = (item) => {
-      if (item.cantidad > 1) {
-        item.cantidad--;
-      }
-      updateQuantity(item);
-    };
-
-    const removeItem = async (item) => {
-      item['carrito'] = user.carrito;
-      try {
-        const response = await axios.post("/api/v1/cart/remove", item)
-        if (response ) {
-          loadCart()
-          getSubTotal()
-        }
-      } catch (error) {
-        if (error.response) {
-          let messageError = error.response.data.message;
-          toast(messageError, {
-            hideProgressBar: true,
-            autoClose: 1500,
-            type: "error",
-            theme: "colored",
-          });
-        }
-      }
-    };
-
-    const proceedToCheckout = () => {
-      alert("Redirigiendo al checkout...");
-    };
-
-    onMounted(loadCart);
-
-    return {
-      cart,
-      cartLenght,
-      subTotal,
-      showAddressForm,
-      editAddress,
-      formatPrice,
-      increaseQuantity,
-      decreaseQuantity,
-      removeItem,
-      proceedToCheckout,
-    };
-  },
+// Cálculos del carrito
+const totalItems = computed(() => {
+  return cart.value.reduce((total, item) => total + (item.cantidad || 0), 0);
 });
+
+const subtotal = computed(() => {
+  return cart.value.reduce((total, item) => {
+    return total + ((item.precio || 0) * (item.cantidad || 0));
+  }, 0);
+});
+
+const total = computed(() => {
+  // Por ahora el total es igual al subtotal (envío gratis)
+  return subtotal.value;
+});
+
+// Cargar el carrito
+const loadCart = async () => {
+  if (!isAuthenticated.value) {
+    cart.value = [];
+    return;
+  }
+  
+  try {
+    const response = await axios.post("/consulta_carrito", {
+      id_usuario: user.value.id_usuario,
+      token: tokenAccess.value,
+    });
+    
+    cart.value = response.data.map(product => {
+      return {
+        ...product,
+        imagen: product.fotografia ? `data:image/jpeg;base64,${product.fotografia}` : null
+      }
+    });
+    
+    console.log('Carrito cargado:', cart.value);
+  } catch (error) {
+    console.error('Error al cargar carrito:', error);
+    cart.value = [];
+    if (error.response) {
+      toast(error.response.data.message || 'Error al cargar el carrito', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      });
+    }
+  }
+};
+
+// Actualizar cantidad de un producto
+const updateQuantity = async (item) => {
+  if (!isAuthenticated.value) {
+    toast('Debes iniciar sesión', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "warning",
+      theme: "colored",
+    });
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    const response = await axios.post("/actualiza_carrito", {
+      id_usuario: user.value.id_usuario,
+      token: tokenAccess.value,
+      id_articulo: item.id_articulo,
+      cantidad: item.cantidad
+    });
+
+    if (response.status === 200) {
+      toast('Cantidad actualizada correctamente', {
+        hideProgressBar: true,
+        autoClose: 1000,
+        type: "success",
+        theme: "colored",
+      });
+      // Recargar carrito para obtener datos actualizados
+      await loadCart();
+    }
+  } catch (error) {
+    console.error('Error al actualizar cantidad:', error);
+    if (error.response) {
+      toast(error.response.data.message || 'Error al actualizar la cantidad', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      });
+    }
+    // Recargar carrito en caso de error para sincronizar
+    await loadCart();
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Aumentar cantidad
+const increaseQuantity = (item) => {
+  if (item.cantidad < 100) { // Límite máximo razonable
+    item.cantidad++;
+    updateQuantity(item);
+  }
+};
+
+// Disminuir cantidad
+const decreaseQuantity = (item) => {
+  if (item.cantidad > 1) {
+    item.cantidad--;
+    updateQuantity(item);
+  }
+};
+
+// Eliminar un artículo específico del carrito
+const removeItem = async (item) => {
+  if (!isAuthenticated.value) {
+    toast('Debes iniciar sesión', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "warning",
+      theme: "colored",
+    });
+    return;
+  }
+
+  // Confirmar eliminación
+  if (!confirm(`¿Estás seguro de eliminar "${item.nombre}" del carrito?`)) {
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    const response = await axios.post("/elimina_articulo_carrito_compra", {
+      id_usuario: user.value.id_usuario,
+      token: tokenAccess.value,
+      id_articulo: item.id_articulo
+    });
+
+    if (response.status === 200) {
+      toast('Producto eliminado del carrito', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "success",
+        theme: "colored",
+      });
+      // Recargar carrito
+      await loadCart();
+    }
+  } catch (error) {
+    console.error('Error al eliminar producto:', error);
+    if (error.response) {
+      toast(error.response.data.message || 'Error al eliminar el producto', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      });
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Vaciar todo el carrito
+const clearCart = async () => {
+  if (!isAuthenticated.value) {
+    toast('Debes iniciar sesión', {
+      hideProgressBar: true,
+      autoClose: 1500,
+      type: "warning",
+      theme: "colored",
+    });
+    return;
+  }
+
+  // Confirmar eliminación
+  if (!confirm('¿Estás seguro de vaciar todo el carrito? Esta acción no se puede deshacer.')) {
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    const response = await axios.post("/elimina_carrito_compra", {
+      id_usuario: user.value.id_usuario,
+      token: tokenAccess.value
+    });
+
+    if (response.status === 200) {
+      toast('Carrito vaciado correctamente', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "success",
+        theme: "colored",
+      });
+      cart.value = [];
+    }
+  } catch (error) {
+    console.error('Error al vaciar carrito:', error);
+    if (error.response) {
+      toast(error.response.data.message || 'Error al vaciar el carrito', {
+        hideProgressBar: true,
+        autoClose: 1500,
+        type: "error",
+        theme: "colored",
+      });
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Formatear precio
+const formatPrice = (price) =>
+  new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+  }).format(price);
+
+onMounted(loadCart);
 </script>
 
-<style>
+<style scoped>
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -381,5 +459,34 @@ export default defineComponent({
   width: 90%;
   max-width: 500px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cart-item-image {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.border-bottom:last-child {
+  border-bottom: none !important;
+}
+
+@media (max-width: 768px) {
+  .row.align-items-center {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .col-6 {
+    margin-bottom: 0.5rem;
+  }
 }
 </style>
