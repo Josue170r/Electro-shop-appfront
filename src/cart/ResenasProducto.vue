@@ -1,7 +1,5 @@
 <template>
-  <div class="mt-5">
-    <h4 class="mb-4">Reseñas del Producto</h4>
-
+  <div>
     <div v-if="reviews && reviews.length > 0" class="row">
       <div
         v-for="(review, index) in reviews"

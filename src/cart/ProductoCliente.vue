@@ -1,109 +1,150 @@
 <template>
   <div>
     <MainHeader />
-    <div v-if="product" class="container py-4">
-      <div class="row h-100">
+    <div v-if="product" class="container py-3">
+      <div class="row g-4 align-items-stretch">
         <!-- Columna de la imagen -->
-        <div class="col-md-6 mb-4 h-100">
-          <img
-            :src="product.imagenUrl || defaultImage"
-            :alt="product.nombreProducto"
-            class="img-fluid rounded"
-          />
-
-          <!-- Miniaturas adicionales solo si hay más de una imagen -->
-          <div
-            v-if="product.additionalImages && product.additionalImages.length > 0"
-            class="d-flex mt-3 gap-2"
-          >
-            <div
-              v-for="(image, index) in product.additionalImages"
-              :key="index"
-              class="thumbnail-container"
-              style="width: 80px; height: 80px"
-            >
-              <img
-                :src="image"
-                :alt="product.name"
-                class="img-thumbnail"
-                style="
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                  cursor: pointer;
-                "
-                @click="setMainImage(image)"
-              />
+        <div class="col-md-5 d-flex">
+          <!-- Imagen principal -->
+          <div class="card border-0 shadow-sm mb-3 w-100">
+            <div class="card-body p-3 d-flex flex-column justify-content-between">
+              <div class="d-flex justify-content-center align-items-center" style="height: 240px;">
+                <img
+                  :src="product.imagenUrl || defaultImage"
+                  :alt="product.nombreProducto"
+                  class="img-fluid rounded"
+                  style="max-height: 100%; max-width: 100%; object-fit: contain;"
+                />
+              </div>
+              
+              <!-- Miniaturas adicionales -->
+              <div
+                v-if="product.additionalImages && product.additionalImages.length > 0"
+                class="d-flex gap-2 justify-content-center mt-3"
+              >
+                <div
+                  v-for="(image, index) in product.additionalImages"
+                  :key="index"
+                  class="thumbnail-container"
+                >
+                  <img
+                    :src="image"
+                    :alt="product.nombreProducto"
+                    class="img-thumbnail rounded"
+                    style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;"
+                    @click="setMainImage(image)"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Columna de detalles -->
-        <div class="col-md-6">
-          <h2 class="mb-2">{{ product.nombreProducto }}</h2>
-          <p class="text-muted mb-3">de {{ product.proveedor.nombreProveedor }}</p>
-
-          <div class="fs-3 fw-bold text-primary mb-4">
-            {{ formatPrice(product.precioUnitario) }}
-          </div>
-
-          <!-- Stock status -->
-          <div class="mb-4">
-            <span v-if="product.stock > 0" class="badge bg-success">En stock</span>
-            <span v-else class="badge bg-danger">Agotado</span>
-          </div>
-
-          <!-- Cantidad y botón de agregar al carrito -->
-          <div class="mb-4">
-            <label for="quantity" class="form-label">Cantidad:</label>
-            <div class="d-flex gap-3 align-items-center">
-              <div class="input-group" style="width: 140px">
-                <button
-                  class="btn btn-outline-secondary"
-                  type="button"
-                  @click="decreaseQuantity"
-                  :disabled="quantity <= 1"
-                >
-                  <i class="bi bi-dash"></i>
-                </button>
-                <input
-                  type="number"
-                  class="form-control text-center"
-                  id="quantity"
-                  v-model.number="quantity"
-                  min="1"
-                  readonly
-                  :max="product.stock"
-                />
-                <button
-                  class="btn btn-outline-secondary"
-                  type="button"
-                  @click="increaseQuantity"
-                  :disabled="quantity >= product.stock"
-                >
-                  <i class="bi bi-plus"></i>
-                </button>
+        <div class="col-md-7 d-flex">
+          <div class="card border-0 shadow-sm w-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+              <!-- Header del producto -->
+              <div class="border-bottom pb-3 mb-3">
+                <h2 class="h3 fw-bold text-dark mb-2">{{ product.nombreProducto }}</h2>
+                <p class="text-muted mb-0">
+                  <i class="bi bi-shop me-2"></i>{{ product.proveedor.nombreProveedor }}
+                </p>
               </div>
 
-              <button
-                class="btn btn-primary"
-                @click="addToCart"
-                :disabled="product.stock <= 0"
-              >
-                Agregar al carrito
-              </button>
-            </div>
-          </div>
+              <!-- Precio y stock -->
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="h2 fw-bold text-primary mb-0">
+                  {{ formatPrice(product.precioUnitario) }}
+                </span>
+                <span 
+                  v-if="product.stock > 0" 
+                  class="badge bg-success px-3 py-2"
+                >
+                  <i class="bi bi-check-circle me-1"></i>En stock
+                </span>
+                <span 
+                  v-else 
+                  class="badge bg-danger px-3 py-2"
+                >
+                  <i class="bi bi-x-circle me-1"></i>Agotado
+                </span>
+              </div>
 
-          <!-- Descripción -->
-          <div class="mt-4">
-            <h5>Descripción</h5>
-            <p>{{ product.descripcionProducto }}</p>
+              <!-- Controles de cantidad y carrito -->
+              <div class="bg-light rounded p-3 mb-3">
+                <div class="row align-items-center g-3">
+                  <div class="col-auto">
+                    <label for="quantity" class="form-label fw-semibold mb-0">Cantidad:</label>
+                  </div>
+                  <div class="col-auto">
+                    <div class="input-group" style="width: 130px;">
+                      <button
+                        class="btn btn-outline-primary btn-sm"
+                        type="button"
+                        @click="decreaseQuantity"
+                        :disabled="quantity <= 1"
+                      >
+                        <i class="bi bi-dash"></i>
+                      </button>
+                      <input
+                        type="number"
+                        class="form-control form-control-sm text-center fw-bold"
+                        id="quantity"
+                        v-model.number="quantity"
+                        min="1"
+                        readonly
+                        :max="product.stock"
+                      />
+                      <button
+                        class="btn btn-outline-primary btn-sm"
+                        type="button"
+                        @click="increaseQuantity"
+                        :disabled="quantity >= product.stock"
+                      >
+                        <i class="bi bi-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <button
+                      class="btn btn-primary"
+                      @click="addToCart"
+                      :disabled="product.stock <= 0"
+                    >
+                      <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Descripción -->
+              <div>
+                <h5 class="fw-bold text-dark mb-2">
+                  <i class="bi bi-info-circle text-primary me-2"></i>Descripción
+                </h5>
+                <p class="text-muted mb-0">{{ product.descripcionProducto }}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
       <!-- Componente de reseñas -->
-      <ResenasProducto :productId="product.idProducto" />
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 p-3">
+              <h4 class="fw-bold text-dark mb-0">
+                <i class="bi bi-star text-warning me-2"></i>Reseñas del producto
+              </h4>
+            </div>
+            <div class="card-body p-3">
+              <ResenasProducto :productId="product.idProducto" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -234,17 +275,38 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.thumbnail-container {
-  transition: all 0.2s ease-in-out;
-}
-
-.thumbnail-container:hover {
+.thumbnail-container img:hover {
   transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-color: var(--bs-primary) !important;
 }
 
-/* Asegurar que las imágenes mantengan su aspecto */
-.img-fluid {
-  max-height: 500px;
-  object-fit: contain;
+.btn-primary {
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+}
+
+.card {
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+/* Mejoras responsivas */
+@media (max-width: 768px) {
+  .h2 {
+    font-size: 1.5rem;
+  }
+  
+  .h3 {
+    font-size: 1.25rem;
+  }
 }
 </style>
