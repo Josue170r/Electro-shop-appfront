@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "npx serve -s dist -p $PORT",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
