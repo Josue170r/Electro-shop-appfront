@@ -159,9 +159,9 @@
                 <!-- Información de seguridad -->
                 <div class="security-info mt-4 p-3 bg-primary bg-opacity-5 rounded">
                   <div class="d-flex align-items-center">
-                    <i class="bi bi-shield-lock-fill text-primary me-2"></i>
-                    <small class="text-primary fw-medium">
-                      Tu información está protegida con encriptación de 256 bits
+                    <i class="bi bi-shield-lock-fill text-white me-2"></i>
+                    <small class="text-white fw-medium">
+                      Tu información está protegida
                     </small>
                   </div>
                 </div>
