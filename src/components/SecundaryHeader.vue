@@ -50,7 +50,7 @@
 
       <div class="actions-group">
         <div class="user-actions">
-          <RouterLink :to="isLogged ? '/perfil-usuario' : '/inicio-sesion'">
+          <RouterLink :to="isLogged ? '/perfil-usuario' : '/inicio-sesion'" class="button-link">
             <button class="icon-button user-button">
               <UserIcon />
               <span class="user-text d-none d-md-inline">{{ isLogged ? 'Mi Perfil' : 'Iniciar Sesión' }}</span>
@@ -58,7 +58,7 @@
           </RouterLink>
 
           <!-- Carrito -->
-          <RouterLink to="/carrito-compras">
+          <RouterLink to="/carrito-compras" class="button-link">
             <button class="icon-button cart-button">
               <ShoppingCartIcon />
               <span class="cart-count" v-if="cartItemsCount > 0">{{ cartItemsCount }}</span>
@@ -128,7 +128,7 @@ onMounted(() => {
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0.5rem 2rem;
+  padding: 0rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -145,8 +145,8 @@ onMounted(() => {
 }
 
 .logo-image {
-  width: 5rem;
-  height: 5rem;
+  width: 6rem;
+  height: 6rem;
   object-fit: contain;
 }
 
@@ -286,6 +286,17 @@ onMounted(() => {
   align-items: center;
 }
 
+/* Quitar línea azul de enlaces */
+.button-link {
+  text-decoration: none !important;
+}
+
+.button-link:hover,
+.button-link:focus,
+.button-link:active {
+  text-decoration: none !important;
+}
+
 /* Iconos y botones mejorados */
 .icon-button {
   background: linear-gradient(135deg, #f8fafc, #e2e8f0);
@@ -354,8 +365,8 @@ onMounted(() => {
   }
   
   .logo-image {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 5rem;
+    height: 5rem;
   }
   
   .logo {
@@ -378,8 +389,8 @@ onMounted(() => {
   }
   
   .logo-image {
-    width: 2rem;
-    height: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
   }
   
   .logo {
